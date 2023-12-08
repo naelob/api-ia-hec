@@ -5,6 +5,9 @@ import pandas as pd
 import numpy as np
 import random
 
+app = FastAPI()
+
+
 class DataModel(BaseModel):
     stock_id: int
     date_id: int
@@ -23,18 +26,23 @@ class DataModel(BaseModel):
     time_id: int
     row_id: str
 
-app = FastAPI()
+# utils
 
+features = ['imbalance_size', 'imbalance_buy_sell_flag', 'reference_price', 'matched_size', 
+    'bid_price', 'bid_size', 'ask_price', 'ask_size', 'wap', 'near_price_norm', 'far_price_norm',
+    'volume', 'ask_ref_ratio', 'bid_ref_ratio'
+]    
+
+def price_fit(x, A, B): 
+    y = 1/(A + (B*x)**2)
+    return y 
+    
 @app.get("/")
 async def root():
     return {"welcome": "You are on the Optiver API!"}
 
 @app.post("/predict")
 async def root(data : DataModel):
-
-    def price_fit(x, A, B): 
-        y = 1/(A + (B*x)**2)
-        return y 
     
     fit_A_near = 0.004416741927896185
     fit_B_near = 24.805478617495247
@@ -62,10 +70,6 @@ async def root(data : DataModel):
 
     with open('./models/lgbm_model.pkl', 'rb') as file:
         model = pickle.load(file)
-
-    features = ['imbalance_size', 'imbalance_buy_sell_flag', 'reference_price', 'matched_size', 
-            'bid_price', 'bid_size', 'ask_price', 'ask_size', 'wap', 'near_price_norm', 'far_price_norm',
-            'volume', 'ask_ref_ratio', 'bid_ref_ratio']    
 
     y = model.predict(df[features])
     predictions = y.tolist() if isinstance(y, np.ndarray) else y
