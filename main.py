@@ -50,7 +50,7 @@ async def root(data : DataModel):
     fit_A_far = 0.00695765304579013
     fit_B_far = 22.97869636334778
 
-    df = pd.DataFrame([data.model_dump()])
+    df = pd.DataFrame([data.dict()])
 
     df['near_price_norm'] = df.near_price
     N_near_price = df['near_price_norm'].isna().sum()
